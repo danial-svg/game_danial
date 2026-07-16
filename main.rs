@@ -5,8 +5,7 @@ mod player;
 mod archer;
 mod spearman; 
 mod swordsman; 
-mod wizard; // 👈 ماژول جادوگر اضافه شد
-
+mod wizard; 
 pub use player::{Player, PlayerState};
 const PLAYER_IMG: &[u8] = include_bytes!("assets/player.png");
 fn main() {
@@ -19,7 +18,6 @@ fn main() {
         .add_plugins(archer::ArcherPlugin)
         .add_plugins(spearman::SpearmanPlugin)
         .add_plugins(swordsman::SwordsmanPlugin) 
-        .add_plugins(wizard::WizardPlugin) // 👈 پلاگین جادوگر اضافه شد
-        
+        .add_plugins(wizard::WizardPlugin) 
         .run();
 }
