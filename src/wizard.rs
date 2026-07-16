@@ -1,21 +1,19 @@
 use bevy::prelude::*;
 use crate::background::GameState;
-use crate::{Player, PlayerState}; // ایمپورت کردن وضعیت‌های بازیکن برای بررسی در منطق بازی
+use crate::{Player, PlayerState};
 
-// تعریف حالت‌های مختلف جادوگر (WizState)
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum WizardState {
-    Idle,         // ایستاده و بی‌کار
-    Walking,      // در حال راه رفتن
-    KnifeAttack,  // حمله نزدیک با چاقو
-    CastFireball, // پرتاب فایربال (جادوی آتشین)
-    FlameBreath,  // دمیدن آتش (حمله جادویی قوی‌تر)
-    Fleeing,      // در حال فرار از بازیکن
-    Hurt,         // دریافت آسیب (ضربه خوردن)
-    Dead,         // مرگ
+    Idle,        
+    Walking,      
+    KnifeAttack,  
+    CastFireball, 
+    FlameBreath,  
+    Fleeing,     
+    Hurt,       
+    Dead,        
 }
 
-// کامپوننت اصلی جادوگر برای ذخیره اطلاعاتی مثل خون، سرعت و تایمر حملات
 #[derive(Component)]
 pub struct Wizard {
     pub hp: i32,
@@ -26,24 +24,21 @@ pub struct Wizard {
     pub first_hit_taken: bool, 
     pub flame_triggered: bool, 
     pub attack_timer: Timer,
-    pub consecutive_hits: u32, // شمارنده ضربات پیاپی دریافتی
+    pub consecutive_hits: u32, 
 }
 
-// کامپوننت کنترل زمان‌بندی انیمیشن‌های جادوگر
 #[derive(Component)]
 pub struct WizardAnimationConfig {
     pub timer: Timer,
     pub frame_count: usize,
 }
 
-// کامپوننت مربوط به پرتابه فایربال
 #[derive(Component)]
 pub struct FireballProjectile {
     pub direction_left: bool,
     pub speed: f32,
 }
 
-// منبع (Resource) برای ذخیره بافت‌ها و چیدمان اطلس‌های جادوگر
 #[derive(Resource)]
 pub struct WizardAssets {
     pub idle_texture: Handle<Image>,
@@ -67,15 +62,12 @@ pub struct WizardAssets {
     pub dead_layout: Handle<TextureAtlasLayout>,
 }
 
-// پلاگین اصلی جادوگر برای ثبت سیستم‌ها در موتور Bevy
 pub struct WizardPlugin;
 
 impl Plugin for WizardPlugin {
     fn build(&self, app: &mut App) {
         app
-            // اسپاون کردن جادوگر به محض ورود به مرحله بعدی (NextLevel)
             .add_systems(OnEnter(GameState::NextLevel), setup_wizard_resources_and_spawn)
-            // اجرای بقیه سیستم‌ها به صورت فریم به فریم در طول بازی
             .add_systems(
                 Update,
                 (
@@ -92,7 +84,6 @@ impl Plugin for WizardPlugin {
     }
 }
 
-/// **تابع راه‌اندازی و اسپاون (Setup):**
 fn setup_wizard_resources_and_spawn(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -170,7 +161,6 @@ fn setup_wizard_resources_and_spawn(
     ));
 }
 
-/// **هوش مصنوعی جادوگر (Wizard AI):**
 fn wizard_ai(
     mut commands: Commands,
     time: Res<Time>,
@@ -182,12 +172,10 @@ fn wizard_ai(
     let Some(player_transform) = player_query.iter().next() else { return; }; 
     
     for (mut wiz_transform, mut wizard, mut sprite, mut config) in wizard_query.iter_mut() {
-        // اگر مرده یا ضربه خورده باشد، هوش مصنوعی موقتاً متوقف می‌شود
         if wizard.state == WizardState::Dead || wizard.state == WizardState::Hurt {
             continue;
         }
 
-        // واکنش به اولین ضربه: جادوگر وحشی شده و جادوی FlameBreath می‌زند!
         if wizard.hp < wizard.max_hp && !wizard.first_hit_taken && !wizard.flame_triggered {
             wizard.first_hit_taken = true;
             wizard.flame_triggered = true;
@@ -202,19 +190,16 @@ fn wizard_ai(
             continue;
         }
 
-        // اگر جادوگر وسط یکی از حملات اصلی‌اش باشد، صبر می‌کنیم تا انیمیشن تمام شود
         if wizard.state == WizardState::KnifeAttack || wizard.state == WizardState::CastFireball || wizard.state == WizardState::FlameBreath {
             continue;
         }
 
-        // محاسبه فاصله بین جادوگر و بازیکن
         let diff_x = player_transform.translation.x - wiz_transform.translation.x;
         let diff_y = player_transform.translation.y - wiz_transform.translation.y; 
         
         let distance_x = diff_x.abs();
         let distance_y = diff_y.abs();
 
-        // حالت فرار: اگر بازیکن بعد از ۲ ضربه جادوگر را ترسانده باشد، جادوگر دور می‌شود
         if wizard.state == WizardState::Fleeing {
             if distance_x >= 650.0 {
                 wizard.state = WizardState::Idle;
@@ -229,11 +214,9 @@ fn wizard_ai(
             }
         }
 
-        // چرخش جادوگر به سمت بازیکن
         wizard.direction_facing_left = diff_x < 0.0;
         sprite.flip_x = wizard.direction_facing_left;
 
-        // 👇 اصلاح جدید: اگر بازیکن خیلی نزدیک شود (کمتر از 120 پیکسل)، جادوگر از عکس و انیمیشن Flame استفاده می‌کند!
         if distance_x < 120.0 {
             wizard.state = WizardState::FlameBreath;
             sprite.image = assets.flame_texture.clone(); 
@@ -241,12 +224,11 @@ fn wizard_ai(
                 layout: assets.flame_layout.clone(),
                 index: 0,
             });
-            config.frame_count = 14; // فریم‌های انیمیشن Flame تعدادش ۱۴ تاست
+            config.frame_count = 14; 
             config.timer.set_duration(std::time::Duration::from_secs_f32(0.08)); // سرعت انیمیشن آتش
             continue;
         }
 
-        // اگر بازیکن در محور عمودی (Y) فاصله داشته باشد، جادوگر به سمت او حرکت می‌کند تا هم‌تراز شود
         if distance_y > 10.0 {
             wizard.state = WizardState::Walking;
             sprite.image = assets.walk_texture.clone();
@@ -262,8 +244,6 @@ fn wizard_ai(
             continue;
         }
 
-        // تصمیم‌گیری برای حمله بر اساس فاصله افقی:
-        // اگر خیلی نزدیک باشد (مثلا زیر ۶۵ پیکسل و انیمیشن فلیم هنوز پر نشده باشد): حمله با چاقو (KnifeAttack)
         if distance_x < 65.0 {
             wizard.state = WizardState::KnifeAttack;
             sprite.image = assets.attack1_texture.clone();
@@ -274,7 +254,6 @@ fn wizard_ai(
             config.frame_count = 4;
             config.timer.set_duration(std::time::Duration::from_secs_f32(0.12));
         }
-        // اگر در فاصله متوسط باشد: پرتاب فایربال (CastFireball)
         else if distance_x < 350.0 && distance_x >= 180.0 {
             wizard.attack_timer.tick(time.delta());
             if wizard.attack_timer.just_finished() {
@@ -353,7 +332,6 @@ fn set_wizard_walking(
     transform.translation.x += move_dir * wizard.speed * delta;
 }
 
-/// **سیستم انیمیشن جادوگر:**
 fn animate_wizard(
     time: Res<Time>,
     wizard_assets: Option<Res<WizardAssets>>, 
@@ -383,7 +361,6 @@ fn animate_wizard(
             }
 
             if animation_finished {
-                // اتمام انیمیشن FlameBreath (چه برای نزدیک شدن بازیکن، چه اولین ضربه زدن) و بازگشت به حالت عادی
                 if wizard.state == WizardState::FlameBreath {
                     wizard.state = WizardState::Idle;
                     sprite.image = assets.idle_texture.clone();
@@ -396,9 +373,8 @@ fn animate_wizard(
                     continue;
                 }
 
-                // وقتی جادوگر ۲ بار ضربه پیاپی خورد و انیمیشن آسیب (Hurt) تمام شد، فرار کند!
                 if wizard.state == WizardState::Hurt && wizard.consecutive_hits >= 2 {
-                    wizard.consecutive_hits = 0; // ریست کردن شمارنده ضربه
+                    wizard.consecutive_hits = 0; 
                     wizard.state = WizardState::Fleeing;
                     sprite.image = assets.run_texture.clone(); 
                     sprite.texture_atlas = Some(TextureAtlas {
@@ -410,7 +386,6 @@ fn animate_wizard(
                     continue;
                 }
                 
-                // اتمام آسیب یا حمله معمولی و بازگشت به حالت ایستاده (Idle)
                 wizard.state = WizardState::Idle;
                 sprite.image = assets.idle_texture.clone();
                 sprite.texture_atlas = Some(TextureAtlas {
@@ -424,7 +399,6 @@ fn animate_wizard(
     }
 }
 
-/// **سیستم مرگ جادوگر:**
 fn check_wizard_death_test(
     wizard_assets: Option<Res<WizardAssets>>,
     mut query: Query<(&mut Wizard, &mut Sprite, &mut WizardAnimationConfig)>,
@@ -444,7 +418,6 @@ fn check_wizard_death_test(
     }
 }
 
-/// **حرکت پرتابه‌ها (فایربال):**
 fn move_projectiles(
     mut commands: Commands,
     time: Res<Time>,
@@ -460,7 +433,6 @@ fn move_projectiles(
     }
 }
 
-/// **سیستم انیمیشن فایربال:**
 fn animate_projectiles(
     mut commands: Commands, 
     time: Res<Time>,
@@ -480,7 +452,6 @@ fn animate_projectiles(
     }
 }
 
-/// **سیستم برخورد فایربال به بازیکن:**
 fn damage_player_with_fireball(
     mut commands: Commands,
     mut player_query: Query<(&Transform, &mut Player)>, 
@@ -499,7 +470,6 @@ fn damage_player_with_fireball(
     }
 }
 
-/// **سیستم ضربه زدن بازیکن به جادوگر:**
 fn damage_wizard_with_player_attack(
     mouse_input: Res<ButtonInput<MouseButton>>,
     keyboard_input: Res<ButtonInput<KeyCode>>, 
@@ -518,7 +488,7 @@ fn damage_wizard_with_player_attack(
             
             if distance < 70.0 && wizard.state != WizardState::Dead && wizard.state != WizardState::Hurt {
                 wizard.hp -= 25; 
-                wizard.consecutive_hits += 1; // افزایش شمارنده ضربه
+                wizard.consecutive_hits += 1; 
                 println!("⚔️ به جادوگر آسیب زدید! ضربه پیاپی: {}/2 | خون باقی‌مانده: {}", wizard.consecutive_hits, wizard.hp);
                 
                 if wizard.hp > 0 {

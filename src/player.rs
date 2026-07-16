@@ -166,7 +166,7 @@ fn setup_player(
             is_grounded: true,
             dash_jump_frame: 0,
         },
-        PreviousHp(400), // اصلاح مقدار اولیه بر اساس HP واقعی بازیکن
+        PreviousHp(400), 
         PreviousPlayerState(PlayerState::Idle),
         AnimationConfig {
             timer: Timer::from_seconds(0.12, TimerMode::Repeating),

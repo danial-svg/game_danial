@@ -14,7 +14,7 @@ impl Plugin for SpearmanPlugin {
                 check_spearman_death,
                 player_attack_spearman_collision,
                 restrict_player_spearman_movement,
-                play_spearman_damage_sound, // اضافه شدن سیستم پخش صدا
+                play_spearman_damage_sound, 
             ));
     }
 }
@@ -30,7 +30,6 @@ struct Spearman {
     combo_index: u8,
 }
 
-// کامپوننت کمکی برای پایش میزان خون فریم قبلی نیزه‌دار
 #[derive(Component)]
 struct PreviousEnemyHp(i32);
 
@@ -115,7 +114,7 @@ fn spawn_spearman_trigger(
                         is_running_charge: false,
                         combo_index: 1,
                     },
-                    PreviousEnemyHp(60), // مقدار دهی اولبه خون قدیمی
+                    PreviousEnemyHp(60), 
                     AnimationConfig {
                         timer: Timer::from_seconds(0.12, TimerMode::Repeating),
                         frame_count: 7,
@@ -164,7 +163,7 @@ fn spawn_wave3_spearmen(
                     is_running_charge: false,
                     combo_index: 1,
                 },
-                PreviousEnemyHp(60), // مقدار دهی اولیه خون قدیمی
+                PreviousEnemyHp(60), 
                 AnimationConfig {
                     timer: Timer::from_seconds(0.12, TimerMode::Repeating),
                     frame_count: 7,
@@ -447,13 +446,13 @@ fn play_spearman_damage_sound(
     mut query: Query<(&Spearman, &mut PreviousEnemyHp)>,
 ) {
     for (spearman, mut prev_hp) in query.iter_mut() {
-        // اگر خون دشمن کم شده باشد، یعنی حمله بازیکن موفقیت‌آمیز بوده و برخورد کرده است
+      
         if spearman.hp < prev_hp.0 {
             if spearman.hp <= 0 {
-                // اگر خونش صفر یا کمتر شد: صدای مرگ
+              
                 commands.spawn(AudioPlayer::new(asset_server.load("md3.mp3")));
             } else {
-                // اگر هنوز زنده است: صدای برخورد موفقیت‌آمیز (ضربه‌خوردن)
+            
                 commands.spawn(AudioPlayer::new(asset_server.load("md3.mp3")));
             }
         }
