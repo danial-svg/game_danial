@@ -81,12 +81,11 @@ fn setup_next_level_background(
     bg_query: Query<Entity, With<BackgroundLayer>>,
     mut camera_query: Query<&mut Transform, With<Camera2d>>,
 ) {
-    // اصلاح متد حذف بازگشتی در Bevy
+   
     for entity in bg_query.iter() {
         commands.entity(entity).despawn();
     }
 
-    // اصلاح ساختار دریافت دوربین
     if let Ok(mut camera_transform) = camera_query.single_mut() {
         camera_transform.translation.x = 0.0;
     }
@@ -110,7 +109,6 @@ fn camera_follow(
     mut camera_query: Query<&mut Transform, (With<Camera2d>, Without<crate::Player>)>,
     stage_progress: Res<StageProgress>,
 ) {
-    // اصلاح ساختار دریافت کامپوننت‌های تک‌عضوی
     if let (Ok(player_transform), Ok(mut camera_transform)) = (player_query.single(), camera_query.single_mut()) {
         let target_x = player_transform.translation.x;
         let mut max_camera_x = 0.0;
@@ -134,7 +132,6 @@ fn update_stage_logic(
     mut next_state: ResMut<NextState<GameState>>, 
     asset_server: Res<AssetServer>,
 ) {
-    // اصلاح دریافت بازیکن
     if let Ok(player_transform) = player_query.single() {
         let player_x = player_transform.translation.x;
         let bg_width = 1280.0;
