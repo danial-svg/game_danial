@@ -168,7 +168,6 @@ fn archer_ai(
     mut archer_query: Query<(&mut Archer, &mut Transform, &mut Sprite, &mut AnimationConfig), Without<Player>>,
     archer_assets: Res<ArcherAssets>,
 ) {
-    // 👈 استفاده از متد فوق‌العاده امن iter().next() سازگار با تمامی نسخه‌های Bevy
     let Some(player_transform) = player_query.iter().next() else { return; };
     
     for (mut archer, mut archer_transform, mut sprite, mut config) in archer_query.iter_mut() {
@@ -324,7 +323,6 @@ fn check_arrow_collision(
     arrow_query: Query<(Entity, &Transform, &Arrow)>,
     mut player_query: Query<(&Transform, &mut Player)>,
 ) {
-    // 👈 استفاده ایمن از iter_mut().next() برای جلوگیری از تداخل فریمورک
     let Some((player_transform, mut player)) = player_query.iter_mut().next() else { return; };
     let player_pos = player_transform.translation;
 
@@ -362,7 +360,6 @@ fn player_attack_archer_collision(
     mut archer_query: Query<(&mut Archer, &mut Sprite, &mut AnimationConfig, &Transform)>,
     archer_assets: Res<ArcherAssets>,
 ) {
-    // 👈 استفاده ایمن از iter().next()
     let Some((player_transform, player)) = player_query.iter().next() else { return; };
     
     if player.current_state == PlayerState::Attacking {
@@ -437,7 +434,6 @@ fn restrict_player_movement(
     stage_progress: Res<crate::background::StageProgress>,
 ) {
     if stage_progress.archers_killed < 1 {
-        // 👈 استفاده ایمن از iter_mut().next() برای محدودیت حرکت بازیکن
         if let Some(mut player_transform) = player_query.iter_mut().next() {
             let max_player_x = 800.0; 
             if player_transform.translation.x > max_player_x {
